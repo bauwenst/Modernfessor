@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "modernfessor"
+version = "2025.04.01"
+requires-python = ">= 3.9"
+authors = [
+  {name = "Thomas Bauwens", email = "thomas.bauwens@kuleuven.be"},
+  {name = "Simon Devauchelle"},
+  {name = "Matthias Orlikowski"},
+  {name = "Lukas Mielczarek"}
+]
+maintainers = [
+  {name = "Thomas Bauwens", email = "thomas.bauwens@kuleuven.be"}
+]
+description = "Modernfessor: Better access to the Morfessor tokenisation algorithms."
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = ["NLP", "Morfessor", "tokenizers", "tokenization", "subwords", "segmentation", "natural language"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "transformers",
+    "tokenizers",
+]
+
+# Include data and tokeniser files.
+[tool.setuptools.package-data]
+"*" = ["*.txt"]
