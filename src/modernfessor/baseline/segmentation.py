@@ -1,4 +1,5 @@
-from tktkt.interfaces.huggingface import HuggingFaceTokeniserInterface
+from tktkt.interfaces.huggingface import (
+    HuggingFaceTokeniserInterface)
 
 
 class MorfessorBaseline(HuggingFaceTokeniserInterface):

@@ -7,8 +7,12 @@ import json
 from tqdm.auto import tqdm
 
 # Core libraries
-from tktkt.interfaces.vocabulariser import Vocabulariser
+from tktkt.interfaces.vocabulariser import (
+    Vocabulariser, Preprocessor)
 
 
 class MorfessorVocabulariser(Vocabulariser):
-    pass
+    def __init__(
+            self, preprocessor: Preprocessor,
+            ):
+        super().__init__(name="bpe", preprocessor=preprocessor)
