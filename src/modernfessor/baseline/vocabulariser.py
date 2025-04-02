@@ -15,4 +15,4 @@ class MorfessorVocabulariser(Vocabulariser):
     def __init__(
             self, preprocessor: Preprocessor,
             ):
-        super().__init__(name="bpe", preprocessor=preprocessor)
+        super().__init__(name="morfessor", preprocessor=preprocessor)
