@@ -1,54 +1,52 @@
 from typing import List, Mapping, Optional
 
-from morfessor.models.baseline import BaselineModel, BaseConstructionMethods
+from morfessor.models.baseline import MorfessorBaseline as MorfessorBackend, BaseConstructionMethods
 from morfessor.util.io import MorfessorIO
 
-from tktkt.interfaces.huggingface import (
-    HuggingFaceTokeniserInterface)
+from tktkt.interfaces.huggingface import HuggingFaceTokeniserInterface
 
 from .vocabulariser import MorfessorConfig
 
 
 class MorfessorBaseline(HuggingFaceTokeniserInterface):
-    model: BaselineModel
-    io: MorfessorIO
-    viterbismooth: float
-    viterbimaxlen: float
 
-    def _tokenize(self, text, **kwargs) -> list[str]:
-        atoms = list()
-        for compound in self.io.compound_sep_re.split(text):
-            if len(compound) > 0:
-                atoms.append((1, self.io._split_atoms(compound)))
+    def __init__(self, backend: MorfessorBackend, io: MorfessorIO, viterbi_smooth: float, viterbi_maxlen: float, **kwargs):
+        super().__init__(**kwargs)
+        self._backend = backend
+        self._io = io
+        self._smoothing = viterbi_smooth
+        self._max_len = viterbi_maxlen
 
-        constructions, logp = self.model.viterbi_segment(
-            atoms, self.viterbismooth, self.viterbimaxlen)
+    def _tokenize(self, text: str, **kwargs) -> list[str]:
+        atoms = []
+        for compound in self._io.compound_sep_re.split(text):
+            if compound:
+                atoms.append((1, self._io._split_atoms(compound)))
+
+        constructions, logp = self._backend.viterbi_segment(atoms, self._smoothing, self._max_len)
         return constructions
 
     # The following three methods are for interfacing with the vocabulary.
 
     @property  # Property because that's how HuggingFace does it. Makes no sense to have getter/setter for this, but ok.
-    @abstractmethod
     def vocab_size(self) -> int:
         pass
 
-    @abstractmethod
     def _convert_token_to_id(self, token: str) -> int:
         pass
 
-    @abstractmethod
     def _convert_id_to_token(self, index: int) -> str:
         pass
 
     # The following two methods are for storage and come from the parent class of PreTrainedTokenizer.
 
     def get_vocab(self) -> Mapping[str, int]:
-        compounds = self.model.get_compounds()
+        compounds = self._backend.get_compounds()
 
         atoms: list[str] = list()
         for c in compounds:
 
-            _, _, splitloc = self.model._tree[c]
+            _, _, splitloc = self._backend._tree[c]
             constructions = []
             if not splitloc:
                 atoms.append(c)
@@ -57,7 +55,6 @@ class MorfessorBaseline(HuggingFaceTokeniserInterface):
         # use stable mapping for simplicity now
         return {a: i for i, a in enumerate(atoms)}
 
-    @abstractmethod
     def save_vocabulary(self, save_directory: str, filename_prefix: Optional[str] = None) -> tuple[str]:
         pass
 
@@ -66,11 +63,9 @@ class MorfessorBaseline(HuggingFaceTokeniserInterface):
     def tokenize(self, text: str, **kwargs) -> List[str]:
         return self._tokenize(text, **kwargs)
 
-    @abstractmethod
     def convert_tokens_to_string(self, tokens: List[str]) -> str:
         pass
 
-    @abstractmethod
     def build_inputs_with_special_tokens(self, token_ids_0: List[int], token_ids_1: Optional[List[int]]=None) -> List[int]:
         """
         Takes over the role of tokenizers.processors (adding [CLS] and [SEP]) in PreTrainedTokenizer, where it is called by:
